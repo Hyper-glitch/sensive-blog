@@ -3,11 +3,11 @@ from blog.models import Comment, Post
 
 
 def get_related_posts_count(tag):
-    return tag.posts.count()
+    return tag.tags_amount
 
 
 def get_likes_count(post):
-    return post.likes.count()
+    return post.likes_amount
 
 
 def serialize_post(post):
