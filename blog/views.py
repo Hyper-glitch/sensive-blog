@@ -1,17 +1,17 @@
 from django.db.models import Count
 from django.shortcuts import render
 
-from blog.blog_tools import get_related_posts_count, serialize_post, serialize_tag, get_likes_count
+from blog.blog_tools import get_related_posts_count, serialize_post, serialize_tag
 from blog.models import Comment, Post, Tag
 
 
 def index(request):
-    posts = Post.objects.all().annotate(likes_amount=Count('likes'))
+    posts = Post.objects.prefetch_related('author').annotate(likes_amount=Count('likes'))
     popular_posts = posts.order_by('-likes_amount')
     most_popular_posts = popular_posts[:5]
 
-    fresh_posts = Post.objects.order_by('-published_at')
-    most_fresh_posts = list(fresh_posts.iterator())[:5]
+    fresh_posts = Post.objects.prefetch_related('author').order_by('-published_at')
+    most_fresh_posts = list(fresh_posts)[:5]
 
     tags = Tag.objects.all().annotate(tags_amount=Count('posts'))
     popular_tags = tags.order_by('-tags_amount')
