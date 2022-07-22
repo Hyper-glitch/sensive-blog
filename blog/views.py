@@ -7,14 +7,14 @@ from blog.models import Comment, Post, Tag
 
 def index(request):
     posts = Post.objects.all().annotate(likes_amount=Count('likes'))
-    popular_posts = sorted(posts.iterator(), key=get_likes_count, reverse=True)
+    popular_posts = posts.order_by('-likes_amount')
     most_popular_posts = popular_posts[:5]
 
     fresh_posts = Post.objects.order_by('-published_at')
     most_fresh_posts = list(fresh_posts.iterator())[:5]
 
     tags = Tag.objects.all().annotate(tags_amount=Count('posts'))
-    popular_tags = sorted(tags.iterator(), key=get_related_posts_count, reverse=True)
+    popular_tags = tags.order_by('-tags_amount')
     most_popular_tags = popular_tags[:5]
 
     context = {
