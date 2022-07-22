@@ -6,6 +6,10 @@ def get_related_posts_count(tag):
     return tag.posts.count()
 
 
+def get_likes_count(post):
+    return post.likes.count()
+
+
 def serialize_post(post):
     return {
         'title': post.title,
