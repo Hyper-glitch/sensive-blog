@@ -12,7 +12,7 @@ def index(request):
     popular_posts = posts.order_by('-likes__count')
     most_popular_posts = popular_posts[:5]
 
-    fresh_posts = Post.objects.prefetch_related('author').order_by('-published_at')
+    fresh_posts = Post.objects.prefetch_related('author').annotate(Count('comments')).order_by('-published_at')
     most_fresh_posts = list(fresh_posts)[:5]
 
     tags = Tag.objects.all().annotate(tags_amount=Count('posts'))
