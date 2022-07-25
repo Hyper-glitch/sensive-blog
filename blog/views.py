@@ -14,10 +14,7 @@ def index(request):
 
     fresh_posts = Post.objects.prefetch_related('author').annotate(Count('comments')).order_by('-published_at')
     most_fresh_posts = list(fresh_posts)[:5]
-
-    tags = Tag.objects.all().annotate(tags_amount=Count('posts'))
-    popular_tags = tags.order_by('-tags_amount')
-    most_popular_tags = popular_tags[:5]
+    most_popular_tags = Tag.objects.popular()[:5]
 
     context = {
         'most_popular_posts': [
