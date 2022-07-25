@@ -16,9 +16,17 @@ class PostQuerySet(models.QuerySet):
         return posts_at_year
 
     def popular(self):
+        """
+        Manager that counts likes and sorts from max to min.
+        :return: sorted posts with likes amount.
+        """
         return self.annotate(likes_count=Count('likes')).order_by('-likes_count')
 
     def fetch_with_comments_count(self):
+        """
+        Manager that counts comments and assign their to post objects. Use to avoid problem with using two annotates.
+        :return: posts with comments amount.
+        """
         most_popular_posts_ids = [post.id for post in self]
         posts_with_comments = Post.objects.filter(id__in=most_popular_posts_ids).annotate(
             comments_count=Count('comments'))
@@ -42,6 +50,7 @@ class TagQuerySet(models.QuerySet):
 
 
 class Post(models.Model):
+    """Model that describes post object."""
     title = models.CharField('Заголовок', max_length=200)
     text = models.TextField('Текст')
     slug = models.SlugField('Название в виде url', max_length=200)
@@ -80,6 +89,7 @@ class Post(models.Model):
 
 
 class Tag(models.Model):
+    """Model that describes tag object."""
     title = models.CharField('Тег', max_length=20, unique=True)
     objects = TagQuerySet.as_manager()
 
@@ -99,6 +109,7 @@ class Tag(models.Model):
 
 
 class Comment(models.Model):
+    """Model that describes comment object."""
     post = models.ForeignKey(
         'Post',
         on_delete=models.CASCADE,
