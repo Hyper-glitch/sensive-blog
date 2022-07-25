@@ -2,6 +2,8 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.urls import reverse
 
+from blog.custom_managers import PostQuerySet
+
 
 class Post(models.Model):
     title = models.CharField('Заголовок', max_length=200)
@@ -27,6 +29,7 @@ class Post(models.Model):
         related_name='posts',
         verbose_name='Теги',
     )
+    objects = PostQuerySet.as_manager()
 
     def __str__(self):
         return self.title
