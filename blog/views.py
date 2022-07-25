@@ -7,10 +7,10 @@ from blog.models import Comment, Post, Tag
 
 def index(request):
     top_obj_amount = 5
-    popular_posts = Post.objects.popular().prefetch_related('author')[:top_obj_amount].fetch_with_comments_count()
+    popular_posts = Post.objects.popular().prefetch_related('author').prefetch_related('tags')[:top_obj_amount].fetch_with_comments_count()
     most_popular_posts = popular_posts[:top_obj_amount]
 
-    fresh_posts = Post.objects.prefetch_related('author').annotate(
+    fresh_posts = Post.objects.prefetch_related('author').prefetch_related('tags').annotate(
         comments_count=Count('comments')).order_by('-published_at')
 
     most_fresh_posts = list(fresh_posts)[:top_obj_amount]

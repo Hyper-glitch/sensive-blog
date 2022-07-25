@@ -45,8 +45,7 @@ class TagQuerySet(models.QuerySet):
         Manager that count tags on posts.
         :return: popular tags.
         """
-        popular_tags = self.annotate(tags_amount=Count('posts')).order_by('-tags_amount')
-        return popular_tags
+        return self.annotate(tags_amount=Count('posts')).order_by('-tags_amount')
 
 
 class Post(models.Model):
