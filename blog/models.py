@@ -47,6 +47,13 @@ class TagQuerySet(models.QuerySet):
         """
         return self.annotate(tags_amount=Count('posts')).order_by('-tags_amount')
 
+    def posts_count(self):
+        """
+        Manager that count tags on posts.
+        :return: popular tags.
+        """
+        return self.annotate(posts_amount=Count('posts')).order_by('-tags_amount')
+
 
 class Post(models.Model):
     """Model that describes post object."""
