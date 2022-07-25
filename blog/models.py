@@ -42,17 +42,17 @@ class TagQuerySet(models.QuerySet):
 
     def popular(self):
         """
-        Manager that count tags on posts.
-        :return: popular tags.
+        Manager that count posts on tag.
+        :return: popular tags order from max to min.
         """
-        return self.annotate(tags_amount=Count('posts')).order_by('-tags_amount')
+        return self.posts().order_by('-posts_amount')
 
-    def posts_count(self):
+    def posts(self):
         """
-        Manager that count tags on posts.
-        :return: popular tags.
+        Manager that count posts on tag.
+        :return: tags with posts amount.
         """
-        return self.annotate(posts_amount=Count('posts')).order_by('-tags_amount')
+        return self.annotate(posts_amount=Count('posts'))
 
 
 class Post(models.Model):
