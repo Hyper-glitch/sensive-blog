@@ -1,7 +1,7 @@
 from django.db.models import Count
 from django.shortcuts import render
 
-from blog.blog_tools import get_related_posts_count, serialize_post, serialize_tag, serialize_post_optimized
+from blog.blog_tools import serialize_post, serialize_tag, serialize_post_optimized
 from blog.models import Comment, Post, Tag
 
 
@@ -30,15 +30,14 @@ def post_detail(request, slug):
     post = Post.objects.get(slug=slug)
     comments = Comment.objects.filter(post=post)
     serialized_comments = []
+
     for comment in comments:
         serialized_comments.append({
             'text': comment.text,
             'published_at': comment.published_at,
             'author': comment.author.username,
         })
-
     likes = post.likes.all()
-
     related_tags = post.tags.all()
 
     serialized_post = {
@@ -52,13 +51,8 @@ def post_detail(request, slug):
         'slug': post.slug,
         'tags': [serialize_tag(tag) for tag in related_tags],
     }
-
-    all_tags = Tag.objects.all()
-    popular_tags = sorted(all_tags, key=get_related_posts_count)
-    most_popular_tags = popular_tags[-5:]
-
+    most_popular_tags = Tag.objects.popular()[-5:]
     most_popular_posts = []  # TODO. Как это посчитать?
-
     context = {
         'post': serialized_post,
         'popular_tags': [serialize_tag(tag) for tag in most_popular_tags],
@@ -71,13 +65,8 @@ def post_detail(request, slug):
 
 def tag_filter(request, tag_title):
     tag = Tag.objects.get(title=tag_title)
-
-    all_tags = Tag.objects.all()
-    popular_tags = sorted(all_tags, key=get_related_posts_count)
-    most_popular_tags = popular_tags[-5:]
-
+    most_popular_tags = Tag.objects.popular()[-5:]
     most_popular_posts = []  # TODO. Как это посчитать?
-
     related_posts = tag.posts.all()[:20]
 
     context = {
