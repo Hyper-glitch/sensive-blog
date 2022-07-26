@@ -56,7 +56,7 @@ def serialize_tag_optimized(tag):
 
 def get_most_popular_posts(top_obj_amount):
     posts_prefetch = Prefetch('tags', queryset=Tag.objects.annotate(posts_amount=Count('posts')))
-    popular_posts = Post.objects.popular().prefetch_related('author').prefetch_related(posts_prefetch)[:top_obj_amount] \
-        .fetch_with_comments_count()
+    popular_posts = Post.objects.likes().order_by('-likes_count').prefetch_related('author').prefetch_related(
+        posts_prefetch)[:top_obj_amount].fetch_with_comments_count()
     most_popular_posts = popular_posts[:top_obj_amount]
     return most_popular_posts, posts_prefetch
