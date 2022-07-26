@@ -1,25 +1,28 @@
-from django.db.models import Count
+from django.db.models import Count, Prefetch
 from django.shortcuts import render
 
-from blog.blog_tools import serialize_post, serialize_tag, serialize_post_optimized
+from blog.blog_tools import serialize_post, serialize_tag, serialize_post_optimized, serialize_tag_optimized
 from blog.models import Comment, Post, Tag
 
 
 def index(request):
     top_obj_amount = 5
-    popular_posts = Post.objects.popular().prefetch_related('author').prefetch_related('tags')[:top_obj_amount].fetch_with_comments_count()
+    posts_prefetch = Prefetch('tags', queryset=Tag.objects.annotate(posts_amount=Count('posts')))
+
+    popular_posts = Post.objects.popular().prefetch_related('author').prefetch_related(posts_prefetch)[:top_obj_amount] \
+        .fetch_with_comments_count()
     most_popular_posts = popular_posts[:top_obj_amount]
 
-    fresh_posts = Post.objects.prefetch_related('author').prefetch_related('tags').annotate(
-        comments_count=Count('comments')).order_by('-published_at')
-
+    fresh_posts = Post.objects.prefetch_related('author').prefetch_related(posts_prefetch) \
+        .annotate(comments_count=Count('comments')).order_by('-published_at')
     most_fresh_posts = list(fresh_posts)[:top_obj_amount]
+
     most_popular_tags = Tag.objects.popular()[:top_obj_amount]
 
     context = {
         'most_popular_posts': [serialize_post_optimized(post) for post in most_popular_posts],
         'page_posts': [serialize_post_optimized(post) for post in most_fresh_posts],
-        'popular_tags': [serialize_tag(tag) for tag in most_popular_tags],
+        'popular_tags': [serialize_tag_optimized(tag) for tag in most_popular_tags],
     }
     return render(request, 'index.html', context)
 
