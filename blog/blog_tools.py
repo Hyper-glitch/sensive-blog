@@ -1,6 +1,7 @@
 """Module, that manipulates with database objects."""
+from django.db.models import Prefetch, Count
 
-from blog.models import Comment, Post
+from blog.models import Comment, Post, Tag
 
 
 def get_related_posts_count(tag):
@@ -51,3 +52,11 @@ def serialize_tag_optimized(tag):
         'title': tag.title,
         'posts_with_tag': tag.posts_amount,
     }
+
+
+def get_most_popular_posts(top_obj_amount):
+    posts_prefetch = Prefetch('tags', queryset=Tag.objects.annotate(posts_amount=Count('posts')))
+    popular_posts = Post.objects.popular().prefetch_related('author').prefetch_related(posts_prefetch)[:top_obj_amount] \
+        .fetch_with_comments_count()
+    most_popular_posts = popular_posts[:top_obj_amount]
+    return most_popular_posts, posts_prefetch
