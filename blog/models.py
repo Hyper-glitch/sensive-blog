@@ -5,6 +5,7 @@ from django.urls import reverse
 
 
 class PostQuerySet(models.QuerySet):
+    """Custom Post queryset manager."""
 
     def year(self, year):
         """
@@ -46,6 +47,7 @@ class PostQuerySet(models.QuerySet):
 
 
 class TagQuerySet(models.QuerySet):
+    """Custom Tag queryset manager."""
 
     def popular(self):
         """
@@ -64,11 +66,13 @@ class TagQuerySet(models.QuerySet):
 
 class Post(models.Model):
     """Model that describes post object."""
+
     title = models.CharField('Заголовок', max_length=200)
     text = models.TextField('Текст')
     slug = models.SlugField('Название в виде url', max_length=200)
     image = models.ImageField('Картинка')
     published_at = models.DateTimeField('Дата и время публикации')
+    objects = PostQuerySet.as_manager()
 
     author = models.ForeignKey(
         User,
@@ -87,7 +91,6 @@ class Post(models.Model):
         related_name='posts',
         verbose_name='Теги',
     )
-    objects = PostQuerySet.as_manager()
 
     def __str__(self):
         return self.title
@@ -103,6 +106,7 @@ class Post(models.Model):
 
 class Tag(models.Model):
     """Model that describes tag object."""
+
     title = models.CharField('Тег', max_length=20, unique=True)
     objects = TagQuerySet.as_manager()
 
@@ -123,6 +127,10 @@ class Tag(models.Model):
 
 class Comment(models.Model):
     """Model that describes comment object."""
+
+    text = models.TextField('Текст комментария')
+    published_at = models.DateTimeField('Дата и время публикации')
+
     post = models.ForeignKey(
         'Post',
         on_delete=models.CASCADE,
@@ -132,9 +140,6 @@ class Comment(models.Model):
         User,
         on_delete=models.CASCADE,
         verbose_name='Автор')
-
-    text = models.TextField('Текст комментария')
-    published_at = models.DateTimeField('Дата и время публикации')
 
     def __str__(self):
         return f'{self.author.username} under {self.post.title}'
