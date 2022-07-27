@@ -1,10 +1,12 @@
+from django.core.handlers.wsgi import WSGIRequest
+from django.http import HttpResponse
 from django.shortcuts import render
 
 from blog.blog_tools import serialize_post, serialize_tag, get_most_popular_posts
 from blog.models import Comment, Post, Tag
 
 
-def index(request):
+def index(request: WSGIRequest) -> HttpResponse:
     top_obj_amount = 5
     most_popular_posts, posts_prefetch = get_most_popular_posts(top_obj_amount)
 
@@ -22,7 +24,7 @@ def index(request):
     return render(request, 'index.html', context)
 
 
-def post_detail(request, slug):
+def post_detail(request: WSGIRequest, slug: str) -> HttpResponse:
     top_obj_amount = 5
     serialized_comments = []
     most_popular_posts, posts_prefetch = get_most_popular_posts(top_obj_amount)
@@ -57,7 +59,7 @@ def post_detail(request, slug):
     return render(request, 'post-details.html', context)
 
 
-def tag_filter(request, tag_title):
+def tag_filter(request: WSGIRequest, tag_title: str) -> HttpResponse:
     top_obj_amount = 5
     tags_with_posts = Tag.objects.popular()
     tag = tags_with_posts.get(title=tag_title)
@@ -76,7 +78,7 @@ def tag_filter(request, tag_title):
     return render(request, 'posts-list.html', context)
 
 
-def contacts(request):
+def contacts(request: WSGIRequest) -> HttpResponse:
     # позже здесь будет код для статистики заходов на эту страницу
     # и для записи фидбека
     return render(request, 'contacts.html', {})
