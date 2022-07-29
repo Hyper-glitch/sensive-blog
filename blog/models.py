@@ -7,7 +7,7 @@ from django.urls import reverse
 class PostQuerySet(models.QuerySet):
     """Custom Post queryset manager."""
 
-    def year(self, year):
+    def filter_by_year(self, year):
         """
         Manager that filter posts by year.
         :params year: value for filtering by.
@@ -16,14 +16,14 @@ class PostQuerySet(models.QuerySet):
         posts_at_year = self.filter(published_at__year=year).order_by('published_at')
         return posts_at_year
 
-    def comments(self):
+    def count_comments(self):
         """
         Manager that counts comments.
         :return: posts with comments amount.
         """
         return self.annotate(comments_count=Count('comments'))
 
-    def likes(self):
+    def count_likes(self):
         """
         Manager that counts likes.
         :return: posts with likes amount.
@@ -52,7 +52,7 @@ class PostQuerySet(models.QuerySet):
         :params top_obj_amount: amount of slicing posts.
         :return: queryset ordered by likes, with authors and posts with comments amount; post's prefetch.
         """
-        popular_posts = self.likes().order_by('-likes_count').prefetch_related('author').prefetch_related(
+        popular_posts = self.count_likes().order_by('-likes_count').prefetch_related('author').prefetch_related(
             posts_prefetch)[:top_obj_amount].fetch_with_comments_count()
         most_popular_posts = popular_posts[:top_obj_amount]
         return most_popular_posts
@@ -61,14 +61,14 @@ class PostQuerySet(models.QuerySet):
 class TagQuerySet(models.QuerySet):
     """Custom Tag queryset manager."""
 
-    def popular(self):
+    def get_popular_posts(self):
         """
         Manager that count posts on tag.
         :return: popular tags order from max to min.
         """
-        return self.posts().order_by('-posts_amount')
+        return self.count_posts().order_by('-posts_amount')
 
-    def posts(self):
+    def count_posts(self):
         """
         Manager that count posts on tag.
         :return: tags with posts amount.
