@@ -1,15 +1,16 @@
 from django.core.handlers.wsgi import WSGIRequest
+from django.db.models import Prefetch, Count
 from django.http import HttpResponse
 from django.shortcuts import render
 
-from blog.blog_tools import get_most_popular_posts
 from blog.models import Comment, Post, Tag
 
 
 def index(request: WSGIRequest) -> HttpResponse:
     top_obj_amount = 5
-    most_popular_posts, posts_prefetch = get_most_popular_posts(top_obj_amount)
+    posts_prefetch = Prefetch('tags', queryset=Tag.objects.annotate(posts_amount=Count('posts')))
 
+    most_popular_posts = Post.objects.get_most_popular_posts(posts_prefetch, top_obj_amount)
     fresh_posts = Post.objects.prefetch_related('author').prefetch_related(posts_prefetch). \
         comments().order_by('-published_at')
     most_fresh_posts = list(fresh_posts)[:top_obj_amount]
@@ -26,8 +27,10 @@ def index(request: WSGIRequest) -> HttpResponse:
 
 def post_detail(request: WSGIRequest, slug: str) -> HttpResponse:
     top_obj_amount = 5
+    posts_prefetch = Prefetch('tags', queryset=Tag.objects.annotate(posts_amount=Count('posts')))
     serialized_comments = []
-    most_popular_posts, posts_prefetch = get_most_popular_posts(top_obj_amount)
+
+    most_popular_posts = Post.objects.get_most_popular_posts(posts_prefetch, top_obj_amount)
     post = Post.objects.prefetch_related('author').likes().get(slug=slug)
     comments = Comment.objects.select_related('author').filter(post=post)
     most_popular_tags = Tag.objects.popular()[:top_obj_amount]
@@ -61,10 +64,12 @@ def post_detail(request: WSGIRequest, slug: str) -> HttpResponse:
 
 def tag_filter(request: WSGIRequest, tag_title: str) -> HttpResponse:
     top_obj_amount = 5
+    posts_prefetch = Prefetch('tags', queryset=Tag.objects.annotate(posts_amount=Count('posts')))
+
     tags_with_posts = Tag.objects.popular()
     tag = tags_with_posts.get(title=tag_title)
 
-    most_popular_posts, posts_prefetch = get_most_popular_posts(top_obj_amount)
+    most_popular_posts = Post.objects.get_most_popular_posts(posts_prefetch, top_obj_amount)
     most_popular_tags = tags_with_posts[:top_obj_amount]
     related_posts = tag.posts.prefetch_related('author').prefetch_related(posts_prefetch).comments()[:20]
 
