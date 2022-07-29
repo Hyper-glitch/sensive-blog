@@ -12,10 +12,10 @@ def index(request: WSGIRequest) -> HttpResponse:
 
     most_popular_posts = Post.objects.get_most_popular_posts(posts_prefetch, top_obj_amount)
     fresh_posts = Post.objects.prefetch_related('author').prefetch_related(posts_prefetch). \
-        comments().order_by('-published_at')
+        count_comments().order_by('-published_at')
     most_fresh_posts = list(fresh_posts)[:top_obj_amount]
 
-    most_popular_tags = Tag.objects.popular()[:top_obj_amount]
+    most_popular_tags = Tag.objects.get_popular_posts()[:top_obj_amount]
 
     context = {
         'most_popular_posts': [serialize_post(post) for post in most_popular_posts],
@@ -31,10 +31,10 @@ def post_detail(request: WSGIRequest, slug: str) -> HttpResponse:
     serialized_comments = []
 
     most_popular_posts = Post.objects.get_most_popular_posts(posts_prefetch, top_obj_amount)
-    post = Post.objects.prefetch_related('author').likes().get(slug=slug)
+    post = Post.objects.prefetch_related('author').count_likes().get(slug=slug)
     comments = Comment.objects.select_related('author').filter(post=post)
-    most_popular_tags = Tag.objects.popular()[:top_obj_amount]
-    related_tags = post.tags.popular()
+    most_popular_tags = Tag.objects.get_popular_posts()[:top_obj_amount]
+    related_tags = post.tags.get_popular_posts()
 
     for comment in comments:
         serialized_comments.append({
@@ -66,12 +66,12 @@ def tag_filter(request: WSGIRequest, tag_title: str) -> HttpResponse:
     top_obj_amount = 5
     posts_prefetch = Prefetch('tags', queryset=Tag.objects.annotate(posts_amount=Count('posts')))
 
-    tags_with_posts = Tag.objects.popular()
+    tags_with_posts = Tag.objects.get_popular_posts()
     tag = tags_with_posts.get(title=tag_title)
 
     most_popular_posts = Post.objects.get_most_popular_posts(posts_prefetch, top_obj_amount)
     most_popular_tags = tags_with_posts[:top_obj_amount]
-    related_posts = tag.posts.prefetch_related('author').prefetch_related(posts_prefetch).comments()[:20]
+    related_posts = tag.posts.prefetch_related('author').prefetch_related(posts_prefetch).count_comments()[:20]
 
     context = {
         'tag': tag.title,
