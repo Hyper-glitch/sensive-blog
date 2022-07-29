@@ -2,7 +2,7 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
 from django.shortcuts import render
 
-from blog.blog_tools import serialize_post, serialize_tag, get_most_popular_posts
+from blog.blog_tools import get_most_popular_posts
 from blog.models import Comment, Post, Tag
 
 
@@ -82,3 +82,24 @@ def contacts(request: WSGIRequest) -> HttpResponse:
     # позже здесь будет код для статистики заходов на эту страницу
     # и для записи фидбека
     return render(request, 'contacts.html', {})
+
+
+def serialize_post(post: Post) -> dict:
+    return {
+        'title': post.title,
+        'teaser_text': post.text[:200],
+        'author': post.author.username,
+        'comments_amount': post.comments_count,
+        'image_url': post.image.url if post.image else None,
+        'published_at': post.published_at,
+        'slug': post.slug,
+        'tags': [serialize_tag(tag) for tag in post.tags.all()],
+        'first_tag_title': post.tags.all()[0].title,
+    }
+
+
+def serialize_tag(tag: Tag) -> dict:
+    return {
+        'title': tag.title,
+        'posts_with_tag': tag.posts_amount,
+    }
